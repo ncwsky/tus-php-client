@@ -489,7 +489,7 @@ class Client extends AbstractTus
 
         $statusCode = $response->getStatusCode();
 
-        if (static::HTTP_CREATED !== $statusCode && static::HTTP_OK !== $statusCode) {
+        if (static::HTTP_CREATED !== $statusCode) {
             throw new FileException('Unable to create resource.');
         }
 
@@ -527,24 +527,21 @@ class Client extends AbstractTus
                 'Upload-Concat' => self::UPLOAD_TYPE_FINAL . ';' . implode(' ', $partials),
             ],
         ]);
-        print_r([
+        /*var_dump([
             'Upload-Length' => $this->fileSize,
             'Upload-Key' => $key,
             'Upload-Checksum' => $this->getUploadChecksumHeader(),
             'Upload-Metadata' => $this->getUploadMetadataHeader(),
             'Upload-Concat' => self::UPLOAD_TYPE_FINAL . ';' . implode(' ', $partials),
-        ]);
+        ]);*/
 
         $checksum   = $this->getChecksum();
         $statusCode = $response->getStatusCode();
-        $url = $response->getHeader('Location');
-        var_dump($url);
-
-        if (static::HTTP_CREATED !== $statusCode && static::HTTP_OK !== $statusCode) { // !$checksum
+        if (static::HTTP_CREATED !== $statusCode) { // !$checksum
             throw new FileException('Unable to create resource.');
         }
-
-        return $checksum;
+        $url = $response->getHeader('Location')[0];
+        return $url;
     }
 
     /**
