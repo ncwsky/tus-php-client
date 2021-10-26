@@ -92,7 +92,7 @@ class Client extends AbstractTus
         $this->fileName = $name ?? basename($this->filePath);
         $this->fileSize = filesize($file);
 
-        $this->addMetadata('filename', $this->fileName);
+        $this->addMetadata('name', $this->fileName);
 
         return $this;
     }
@@ -116,7 +116,7 @@ class Client extends AbstractTus
      */
     public function setFileName(string $name) : self
     {
-        $this->addMetadata('filename', $this->fileName = $name);
+        $this->addMetadata('name', $this->fileName = $name);
 
         return $this;
     }
@@ -392,6 +392,7 @@ class Client extends AbstractTus
         } catch (FileException | ClientException $e) {
             // Create a new upload.
             $this->url = $this->create($this->getKey());
+            $data = $this->getData($offset, $bytes);
         } catch (ConnectException $e) {
             throw new TusException("Couldn't connect to server.");
         }
@@ -643,8 +644,9 @@ class Client extends AbstractTus
         if (static::HTTP_UNSUPPORTED_MEDIA_TYPE === $statusCode) {
             return new TusException('Unsupported media types.');
         }
+        $err = (string) $response->getBody();
 
-        return new TusException((string) $response->getBody(), $statusCode);
+        return new TusException(($err .' - ' $e->getMessage(), $statusCode);
     }
 
     /**
