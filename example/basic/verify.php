@@ -10,9 +10,13 @@ require __DIR__ . '/../../vendor/autoload.php';
 use TusPhp\Exception\FileException;
 use GuzzleHttp\Exception\ConnectException;
 
-$client = new \TusPhp\Tus\Client('http://192.168.0.219:8080/tus-php/example');
+$client = new \TusPhp\Tus\Client('http://192.168.0.219:8099');
+$client->setApiPath('/index/files');
 
 $uploadKey = uniqid('tus_file_');
+$fileMeta = $_POST;
+$key = 'tus-' . $fileMeta['name'] . '-' . (isset($fileMeta['type']) ? $fileMeta['type'] : '') . '-' . $fileMeta['size'] . '-' . (isset($fileMeta['lastModified']) ? $fileMeta['lastModified'] : '0') . '-' . (isset($fileMeta['path']) ? $fileMeta['path'] : '');
+$uploadKey = sha1($key);
 
 try {
     $offset = $client->setKey($uploadKey)->getOffset();

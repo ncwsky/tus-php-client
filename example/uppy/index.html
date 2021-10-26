@@ -108,17 +108,146 @@
     <a href="https://github.com/ankitpokhrel/tus-php">View this project in GitHub &#8594</a>
 </div>
 
-<script src="https://transloadit.edgly.net/releases/uppy/v0.23.2/dist/uppy.min.js"></script>
+<script src="uppy.js"></script>
+<script src="spark-md5.js"></script>
+
+<script src="sha.js"></script>
 <script>
-  const uppy = Uppy.Core({debug: true, autoProceed: false})
-    .use(Uppy.Dashboard, {target: '#uppyUploader', inline: true})
-      //.use(Uppy.Tus, {endpoint: 'http://192.168.0.219:8089/upload/index'})
-      .use(Uppy.Tus, {endpoint: 'http://192.168.0.219:8080/tus-php/example/files', chunkSize:102400})
-    .run()
-  uppy.on('upload-success', (file, response) => {
-      console.log('upload-success', response.url);
-    uppy.setFileState(file.id, { uploadURL: `${response.url}/get` })
-  })
+    function fingerprint(file) {
+        console.log('webkitRelativePath', file.webkitRelativePath)
+        return ["tus", file.name, file.type, file.size, file.lastModified].join("-");
+    }
+
+    function fileHash(uppyFile){
+        var file = uppyFile.data;
+        var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+            spark = new SparkMD5.ArrayBuffer(),
+            fileReader = new FileReader(),
+            chunkSize = 4194304, //4MB  2097152, //2MB
+            chunks = Math.ceil(file.size / chunkSize),
+            currentChunk = 0;
+        var shaObj = new jsSHA("SHA-1", "ARRAYBUFFER");
+        //console.log(file);
+
+        function loadNext() {
+            var start = currentChunk * chunkSize,
+                end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+
+            //fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+            fileReader.readAsArrayBuffer(file.slice(start, end));
+        }
+        uppy.log('hash file start:'+ file.name);
+        fileReader.onload = function (e) {
+            //console.log('read chunk nr', currentChunk + 1, 'of', chunks);
+            // Append array buffer
+            shaObj.update(e.target.result);
+            //spark.append(e.target.result);
+            currentChunk++;
+
+            if (currentChunk < chunks) {
+                loadNext();
+            } else {
+                uppy.log('hash file end:' + file.name);
+
+                //uppyFile.meta.hash = spark.end()
+                uppyFile.meta.hash = shaObj.getHash("HEX")
+                console.log('cacheHash', cacheHash);
+                if(cacheHash[uppyFile.id]!=undefined && cacheHash[uppyFile.id]==''){
+                    cacheHash[uppyFile.id] = uppyFile.meta.hash
+                    uppy.addFile({...uppyFile, type:uppyFile.data.type})
+                }
+                console.info('computed hash', uppyFile);
+            }
+        };
+
+        fileReader.onerror = function () {
+            console.warn('oops, something went wrong.');
+        };
+        loadNext();
+    }
+
+    var cacheHash = {};
+    const uppy = Uppy.Core({
+        debug: false, autoProceed: false,
+        onBeforeUpload: (files) => {
+            // We’ll be careful to return a new object, not mutating the original `files`
+            const updatedFiles = {}
+            //console.log('onBeforeUpload files', files)
+            Object.keys(files).forEach(fileID => {
+                if(cacheHash[fileID] && !files[fileID].meta.hash){
+                    files[fileID].meta.hash = cacheHash[fileID];
+                }
+                if(!files[fileID].meta.hash) {
+                    uppy.removeFile(fileID)
+                }
+
+                updatedFiles[fileID] = files[fileID]
+
+                //localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:8040/index/files/' + SparkMD5.hash('tus-' + files[fileID].meta.name + '-' + (files[fileID].meta.type || 'null') + '-' + files[fileID].size))
+
+                if(files[fileID].meta.hash){
+                    localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:8040/index/files/' + files[fileID].meta.hash + '?hash=1')
+                }else if(files[fileID].meta.path!=undefined){
+                    var idkey = ["tus", files[fileID].meta.name, files[fileID].meta.type||'', files[fileID].meta.size, files[fileID].meta.lastModified||0, files[fileID].meta.path].join("-");
+                    var sha1 = new jsSHA("SHA-1", "TEXT")
+                    sha1.update(idkey)
+                    localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:8040/index/files/' + sha1.getHash('HEX'))
+                }
+            })
+
+            console.log('onBeforeUpload updatedFiles', updatedFiles)
+            return updatedFiles
+        }
+    })
+        .use(Uppy.Dashboard, {target: '#uppyUploader', inline: true})
+        .use(Uppy.Tus, {
+            resume: true,
+            endpoint: 'http://192.168.0.219:8099/index/files'
+        }) //, chunkSize:20*1024*1024  上传大小限制时 可使用此值来分块上传
+        //.use(Uppy.Tus, {endpoint: 'http://192.168.0.219:8040/index/files'}) //, chunkSize:20*1024*1024  上传大小限制时 可使用此值来分块上传
+        //.use(Uppy.Tus, {endpoint: 'http://192.168.0.219:6080/group1/big/upload/'})
+
+        .run()
+    uppy.on('file-added', (file) => {
+        //uppy.setFileMeta(fileID, {path:"/", name:files[fileID].name});
+
+        file.meta = {...file.meta, lastModified:file.data.lastModified, path:'/'}
+        console.log('Added file         ', cacheHash, file)
+        if(cacheHash[file.id]) {
+            console.log('hash exists     ', file.id)
+            return
+        }
+
+        //localStorage.setItem(fingerprint(file.data), 'http://192.168.0.219:8040/index/files/' + SparkMD5.hash('tus-' + file.meta.name + '-' + (file.meta.type || 'null') + '-' + file.size))
+        cacheHash[file.id] = '';
+        fileHash(file);
+    })
+    uppy.on('upload', (data) => {
+        // data object consists of `id` with upload ID and `fileIDs` array
+        // with file IDs in current upload
+        // data: { id, fileIDs }
+        //uppy.setFileMeta(fileID, {path:"/", name:files[fileID].name});
+        data.fileIDs.forEach(fileId=>{
+            file = uppy.getFile(fileId);
+            console.log('upload:'+ fileId, file)
+            if (!file.meta.hash) {
+                uppy.pauseResume(fileId)
+            }
+        });
+        //return false;
+        //console.log('Starting upload ', data)
+    })
+    uppy.on('upload-success', (file, response) => {
+        console.log('upload-success', file, response);
+        uppy.setFileState(file.id, {uploadURL: `${response.url}`})
+        //uppy.setMeta({ auth_token: '9ee60e59-cb0f-4578-aaba-29b9fc2919ca',callback_url:'http://127.0.0.1/callback' ,filename:'自定义文件名','path':'自定义path',scene:'自定义场景' }) set or update meta for all files.
+    })
+    /*
+uppy.setMeta({ username: 'Peter' }) — set or update meta for all files.
+uppy.setFileMeta('myfileID', { resize: 1500 }) — set or update meta for specific file.
+    *
+    * */
+
 </script>
 </body>
 </html>

@@ -2,9 +2,6 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use TusPhp\Exception\TusException;
-use TusPhp\Exception\FileException;
-use TusPhp\Exception\ConnectionException;
 
 $client = new \TusPhp\Tus\Client('http://192.168.0.219:8080/');
 $client->setApiPath('/tus-php/example/files');

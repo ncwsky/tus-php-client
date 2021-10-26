@@ -218,6 +218,7 @@
         fileMeta = tusFile[0].files[0],
         fileSize = fileMeta.size,
         bytesUploaded = 0;
+        fileMeta.path = ''
 
       formData.append('tus_file', fileMeta);
 
@@ -243,9 +244,10 @@
     $.ajax({
       type: 'POST',
       url: 'verify.php',
+        data: {name:fileMeta.name,size:fileMeta.size,type:fileMeta.type,path:''},
       dataType: 'json',
-      processData: false,
-      contentType: false,
+      //processData: false,
+      //contentType: false, //'application/json', //
       success: function (response) {
         if ('error' === response.status) {
           $('#error').html(response.error).fadeIn(200);
@@ -323,8 +325,8 @@
 
     completedUploads.find('p.info').remove();
     completedUploads.append(
-      '<div class="panel panel-default"><div class="panel-body"><a href="<?= (string) (getenv('SERVER_URL') ?? '') ?>/files/'
-      + uploadKey + '/get">' + fileMeta.name + '</a> (' + fileMeta.size + ' bytes)</div></div>'
+      '<div class="panel panel-default"><div class="panel-body"><a href="http://192.168.0.219:8099/index/files/'
+      + uploadKey + '">' + fileMeta.name + '</a> (' + fileMeta.size + ' bytes)</div></div>'
     );
   };
 

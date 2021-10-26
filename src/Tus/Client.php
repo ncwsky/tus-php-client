@@ -646,7 +646,7 @@ class Client extends AbstractTus
         }
         $err = (string) $response->getBody();
 
-        return new TusException(($err .' - ' $e->getMessage(), $statusCode);
+        return new TusException($err .' - '. $e->getMessage(), $statusCode);
     }
 
     /**
