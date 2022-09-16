@@ -152,8 +152,8 @@
                 //uppyFile.meta.hash = spark.end()
                 uppyFile.meta.hash = shaObj.getHash("HEX")
                 console.log('cacheHash', cacheHash);
-                if(cacheHash[uppyFile.id]!=undefined && cacheHash[uppyFile.id]==''){
-                    cacheHash[uppyFile.id] = uppyFile.meta.hash
+                if(cacheHash[uppyFile._id]!=undefined && cacheHash[uppyFile._id]==''){
+                    cacheHash[uppyFile._id] = uppyFile.meta.hash
                     uppy.addFile({...uppyFile, type:uppyFile.data.type})
                 }
                 console.info('computed hash', uppyFile);
@@ -174,8 +174,8 @@
             const updatedFiles = {}
             //console.log('onBeforeUpload files', files)
             Object.keys(files).forEach(fileID => {
-                if(cacheHash[fileID] && !files[fileID].meta.hash){
-                    files[fileID].meta.hash = cacheHash[fileID];
+                if(cacheHash[files[fileID]._id] && !files[fileID].meta.hash){
+                    files[fileID].meta.hash = cacheHash[files[fileID]._id];
                 }
                 if(!files[fileID].meta.hash) {
                     uppy.removeFile(fileID)
@@ -185,13 +185,16 @@
 
                 //localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:8040/index/files/' + SparkMD5.hash('tus-' + files[fileID].meta.name + '-' + (files[fileID].meta.type || 'null') + '-' + files[fileID].size))
 
-                if(files[fileID].meta.hash){
+                /*if(files[fileID].meta.hash){
                     localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:8040/index/files/' + files[fileID].meta.hash + '?hash=1')
-                }else if(files[fileID].meta.path!=undefined){
-                    var idkey = ["tus", files[fileID].meta.name, files[fileID].meta.type||'', files[fileID].meta.size, files[fileID].meta.lastModified||0, files[fileID].meta.path].join("-");
+                }else */if(files[fileID].meta.path!=undefined){
+                    var idkey = ["tus", files[fileID].meta.name, files[fileID].meta.type||'', files[fileID].size, files[fileID].meta.lastModified||0, files[fileID].meta.path].join("-");
+                    console.log('idkey', idkey)
                     var sha1 = new jsSHA("SHA-1", "TEXT")
                     sha1.update(idkey)
-                    localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:8040/index/files/' + sha1.getHash('HEX'))
+                    idkey = sha1.getHash('HEX');
+                    console.log('idkey-sha1', idkey)
+                    localStorage.setItem(fingerprint(files[fileID].data), 'http://192.168.0.219:7700/index/files/' + idkey)
                 }
             })
 
@@ -210,16 +213,17 @@
         .run()
     uppy.on('file-added', (file) => {
         //uppy.setFileMeta(fileID, {path:"/", name:files[fileID].name});
-
         file.meta = {...file.meta, lastModified:file.data.lastModified, path:'/'}
-        console.log('Added file         ', cacheHash, file)
-        if(cacheHash[file.id]) {
-            console.log('hash exists     ', file.id)
+        file._id = fingerprint(file.data)
+
+        console.log('file-added', cacheHash, file)
+        if(cacheHash[file._id]) {
+            console.log('hash exists     ', file._id)
             return
         }
 
         //localStorage.setItem(fingerprint(file.data), 'http://192.168.0.219:8040/index/files/' + SparkMD5.hash('tus-' + file.meta.name + '-' + (file.meta.type || 'null') + '-' + file.size))
-        cacheHash[file.id] = '';
+        cacheHash[file._id] = '';
         fileHash(file);
     })
     uppy.on('upload', (data) => {

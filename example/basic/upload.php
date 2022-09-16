@@ -40,7 +40,7 @@ if ( ! empty($_FILES)) {
             'bytes_uploaded' => $bytesUploaded,
             'upload_key' => $uploadKey
         ]);
-    } catch (Exception $e) {
+    } catch (FileException | TusException $e) {
         echo json_encode([
             'status' => 'error',
             'bytes_uploaded' => -1,

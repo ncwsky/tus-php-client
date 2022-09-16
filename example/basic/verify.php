@@ -10,7 +10,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 use TusPhp\Exception\FileException;
 use GuzzleHttp\Exception\ConnectException;
 
-$client = new \TusPhp\Tus\Client('http://192.168.0.219:8099');
+$client = new \TusPhp\Tus\Client('http://192.168.0.219:7700');
 $client->setApiPath('/index/files');
 
 $uploadKey = uniqid('tus_file_');
