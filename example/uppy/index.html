@@ -202,7 +202,7 @@
         .use(Uppy.Dashboard, {target: '#uppyUploader', inline: true})
         .use(Uppy.Tus, {
             resume: true,
-            endpoint: 'http://192.168.0.219:8099/index/files'
+            endpoint: 'http://192.168.0.219:7700/index/files'
         }) //, chunkSize:20*1024*1024  上传大小限制时 可使用此值来分块上传
         //.use(Uppy.Tus, {endpoint: 'http://192.168.0.219:8040/index/files'}) //, chunkSize:20*1024*1024  上传大小限制时 可使用此值来分块上传
         //.use(Uppy.Tus, {endpoint: 'http://192.168.0.219:6080/group1/big/upload/'})

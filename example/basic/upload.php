@@ -17,7 +17,7 @@ function is_utf8($word){
     }
 }
 
-$client = new \TusPhp\Tus\Client('http://192.168.0.219:8099/');
+$client = new \TusPhp\Tus\Client('http://192.168.0.219:7700/');
 $client->setApiPath('/index/files');
 // Alert: Sanitize all inputs properly in production code
 if ( ! empty($_FILES)) {
