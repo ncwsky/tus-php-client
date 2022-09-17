@@ -8,15 +8,6 @@ header('Content-Type: text/html;charset=utf-8');
 use TusPhp\Exception\TusException;
 use TusPhp\Exception\FileException;
 
-function is_utf8($word){
-    $regx = '(['.chr(228).'-'.chr(233).']{1}['.chr(128).'-'.chr(191).']{1}['.chr(128).'-'.chr(191).']{1})';
-    if (preg_match('/^'.$regx.'{1}/',$word) == true || preg_match('/'.$regx.'{1}$/',$word) == true || preg_match('/'.$regx.'{2,}/',$word) == true){
-        return true;
-    }else{
-        return false;
-    }
-}
-
 $client = new \TusPhp\Tus\Client('http://192.168.0.219:7700/');
 $client->setApiPath('/index/files');
 // Alert: Sanitize all inputs properly in production code
