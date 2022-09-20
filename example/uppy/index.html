@@ -10,7 +10,7 @@
 
     <link href="https://fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link href="https://transloadit.edgly.net/releases/uppy/v0.23.2/dist/uppy.min.css" rel="stylesheet">
+    <link href="uppy.min.css" rel="stylesheet"> <!-- https://transloadit.edgly.net/releases/uppy/v0.23.2/dist/ -->
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -206,7 +206,12 @@
             } else {
                 uppy.log('hash file end:' + file.name);
 
-                uppyFile.meta.hash = spark.end();
+
+                rawMd5 = spark.end(true);
+                uppyFile.meta.hash = SparkMD5.bin2hex(rawMd5); //spark.end();
+                //console.log(rawMd5,rawMd5.length, SparkMD5.bin2hex(rawMd5));
+                uppyFile.meta.checksum = 'md5 '+window.btoa(rawMd5);
+
                 //uppyFile.meta.hash = shaObj.getHash("HEX")
                 console.log('cacheHash', cacheHash);
                 if(cacheHash[uppyFile._id]!=undefined && cacheHash[uppyFile._id]==''){

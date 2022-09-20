@@ -424,6 +424,18 @@
         return String.fromCharCode.apply(String, bytes);
     }
 
+    function bin2hex(bin) {
+        var bytes = [],
+            length = bin.length,
+            x;
+
+        for (x = 0; x < length; x ++) {
+            bytes.push(bin.substr(x, 1).charCodeAt().toString(16));
+        }
+
+        return bytes.join('');
+    }
+
     // ---------------------------------------------------
 
     /**
@@ -605,6 +617,10 @@
         // Then compute it using the binary function
         return SparkMD5.hashBinary(toUtf8(str), raw);
     };
+    SparkMD5.bin2hex = function (str) {
+        return bin2hex(str);
+    };
+
 
     /**
      * Performs the md5 hash on a binary string.

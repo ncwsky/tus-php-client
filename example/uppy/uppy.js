@@ -10345,6 +10345,11 @@ var Upload = function () {
       this._setupXHR(xhr);
       xhr.setRequestHeader("Upload-Length", this._size);
 
+      //追加hash验证
+      if(this.options.metadata['checksum']) {
+        xhr.setRequestHeader("Upload-Checksum", this.options.metadata['checksum']);
+      }
+
       // Add metadata if values have been added
       var metadata = encodeMetadata(this.options.metadata);
       if (metadata !== "") {
