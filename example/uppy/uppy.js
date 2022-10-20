@@ -10328,7 +10328,7 @@ var Upload = function () {
         }
 
         _this2.url = (0, _request.resolveUrl)(_this2.options.endpoint, location);
-          console.log(_this2.url)
+          console.log(_this2.options.endpoint, location, _this2.url)
 
         if (_this2.options.resume) {
           Storage.setItem(_this2._fingerprint, _this2.url);

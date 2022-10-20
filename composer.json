@@ -1,5 +1,5 @@
 {
-  "name": "ankitpokhrel/tus-php-client",
+  "name": "myphps/tus-php-client",
   "description": "A pure PHP client for the tus resumable upload protocol v1.0.0",
   "type": "library",
   "license": "MIT",
