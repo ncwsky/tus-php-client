@@ -171,7 +171,7 @@
     })();
 
     function fingerprint(file) {
-        console.log('webkitRelativePath', file.webkitRelativePath)
+        //console.log('webkitRelativePath', file.webkitRelativePath)
         return ["tus", file.name, file.type, file.size, file.lastModified].join("-");
     }
 
@@ -219,6 +219,10 @@
                     uppy.addFile({...uppyFile, type:uppyFile.data.type})
                 }
                 console.info('computed hash', uppyFile);
+                //hash完成后恢复上传
+                if(uppyFile.isPaused){
+                    uppy.pauseResume(uppyFile.fileId)
+                }
             }
         };
 
@@ -240,7 +244,7 @@
                     files[fileID].meta.hash = cacheHash[files[fileID]._id];
                 }
                 if(!files[fileID].meta.hash) {
-                    uppy.removeFile(fileID)
+                    //uppy.removeFile(fileID)
                 }
 
                 updatedFiles[fileID] = files[fileID]
@@ -295,6 +299,7 @@
             console.log('upload:'+ fileId, file)
             if (!file.meta.hash) {
                 uppy.pauseResume(fileId)
+                //alert(file.name+'预处理中...');
             }
         });
         //return false;
@@ -304,6 +309,11 @@
         console.log('upload-success', file, response);
         uppy.setFileState(file.id, {uploadURL: `${response.url}`})
         //uppy.setMeta({ auth_token: '9ee60e59-cb0f-4578-aaba-29b9fc2919ca',callback_url:'http://127.0.0.1/callback' ,filename:'自定义文件名','path':'自定义path',scene:'自定义场景' }) set or update meta for all files.
+    })
+    uppy.on('upload-error', (file, error, response) => {
+        console.log('upload-error-file', file);
+        console.log('upload-error', error);
+        console.log('upload-error-res', response);
     })
     /*
 uppy.setMeta({ username: 'Peter' }) — set or update meta for all files.
